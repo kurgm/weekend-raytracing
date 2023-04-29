@@ -1,6 +1,8 @@
-use std::error::Error;
+use std::{error::Error, ops::Bound};
 
-use crate::{ray::Ray, vec3::Vec3};
+use hittable::{Hittable, HittableList, Sphere};
+use ray::Ray;
+use vec3::Vec3;
 
 mod hittable;
 mod ray;
@@ -12,12 +14,17 @@ const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
+    let world: HittableList = vec![
+        Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)),
+        Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)),
+    ];
+
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
     for j in (0..IMAGE_HEIGHT).rev() {
         eprint!("\rScanlines remaining: {} ", j);
         for i in 0..IMAGE_WIDTH {
-            let Vec3 { x: r, y: g, z: b } = calculate_color(i, j);
+            let Vec3 { x: r, y: g, z: b } = pixel_color(i, j, &world);
 
             let ir = (255.999 * r) as u32;
             let ig = (255.999 * g) as u32;
@@ -34,7 +41,7 @@ const VIEWPORT_HEIGHT: f64 = 2.0;
 const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
 const FOCAL_LENGTH: f64 = 1.0;
 
-fn calculate_color(i: u32, j: u32) -> Vec3 {
+fn pixel_color(i: u32, j: u32, world: &impl Hittable) -> Vec3 {
     const ORIGIN: Vec3 = Vec3 {
         x: 0.0,
         y: 0.0,
@@ -66,5 +73,15 @@ fn calculate_color(i: u32, j: u32) -> Vec3 {
         ORIGIN,
         lower_left_corner + u * HORIZONTAL + v * VERTICAL - ORIGIN,
     );
-    r.color()
+    ray_color(&r, world)
+}
+
+fn ray_color(ray: &Ray, world: &impl Hittable) -> Vec3 {
+    if let Some(hit) = world.hit(ray, (Bound::Included(0.0), Bound::Unbounded)) {
+        let n = hit.normal.unit();
+        return 0.5 * (n + Vec3::new(1.0, 1.0, 1.0));
+    }
+    let unit = ray.direction.unit();
+    let t = 0.5 * (unit.y + 1.0);
+    (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
