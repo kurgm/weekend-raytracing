@@ -31,6 +31,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         for i in 0..IMAGE_WIDTH {
             let Vec3 { x: r, y: g, z: b } = pixel_color(i, j, &world, &camera);
 
+            // Gamma correction
+            let r = r.sqrt();
+            let g = g.sqrt();
+            let b = b.sqrt();
+
             let ir = (256.0 * r.clamp(0.0, 0.999)) as u32;
             let ig = (256.0 * g.clamp(0.0, 0.999)) as u32;
             let ib = (256.0 * b.clamp(0.0, 0.999)) as u32;
