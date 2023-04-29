@@ -69,7 +69,7 @@ fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
 
-    if let Some(hit) = world.hit(ray, (Bound::Excluded(0.0), Bound::Unbounded)) {
+    if let Some(hit) = world.hit(ray, (Bound::Excluded(0.001), Bound::Unbounded)) {
         let target = hit.p + hit.normal + Vec3::random_in_unit_sphere();
         return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
     }
