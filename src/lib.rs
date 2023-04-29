@@ -45,22 +45,28 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 fn pixel_color(i: u32, j: u32, world: &impl Hittable, camera: &Camera) -> Vec3 {
     let mut rng = rand::thread_rng();
     const SAMPLES_PER_PIXEL: i32 = 100;
+    const MAX_DEPTH: i32 = 50;
     (0..SAMPLES_PER_PIXEL)
         .map(|_| {
             let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH - 1) as f64;
             let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT - 1) as f64;
             let r = camera.get_ray(u, v);
 
-            ray_color(&r, world)
+            ray_color(&r, world, MAX_DEPTH)
         })
         .sum::<Vec3>()
         / SAMPLES_PER_PIXEL as f64
 }
 
-fn ray_color(ray: &Ray, world: &impl Hittable) -> Vec3 {
-    if let Some(hit) = world.hit(ray, (Bound::Included(0.0), Bound::Unbounded)) {
-        let n = hit.normal.unit();
-        return 0.5 * (n + Vec3::new(1.0, 1.0, 1.0));
+fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if depth <= 0 {
+        return Vec3::new(0.0, 0.0, 0.0);
+    }
+
+    if let Some(hit) = world.hit(ray, (Bound::Excluded(0.0), Bound::Unbounded)) {
+        let target = hit.p + hit.normal + Vec3::random_in_unit_sphere();
+        return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
     }
     let unit = ray.direction.unit();
     let t = 0.5 * (unit.y + 1.0);

@@ -1,3 +1,5 @@
+use rand::{distributions::uniform::SampleRange, Rng};
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vec3 {
     pub x: f64,
@@ -107,6 +109,24 @@ impl std::iter::Sum for Vec3 {
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
+    }
+
+    pub fn random(range: impl SampleRange<f64> + Clone) -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen_range(range.clone()),
+            y: rng.gen_range(range.clone()),
+            z: rng.gen_range(range.clone()),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Self::random(-1.0..1.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
     }
 
     pub fn length(&self) -> f64 {
