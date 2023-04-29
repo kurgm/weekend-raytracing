@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::vec3::Vec3;
 
+mod ray;
 mod vec3;
 
 const IMAGE_WIDTH: u32 = 256;
