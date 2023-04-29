@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::{error::Error, ops::Bound};
 
 use camera::Camera;
@@ -30,9 +31,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         for i in 0..IMAGE_WIDTH {
             let Vec3 { x: r, y: g, z: b } = pixel_color(i, j, &world, &camera);
 
-            let ir = (255.999 * r) as u32;
-            let ig = (255.999 * g) as u32;
-            let ib = (255.999 * b) as u32;
+            let ir = (256.0 * r.clamp(0.0, 0.999)) as u32;
+            let ig = (256.0 * g.clamp(0.0, 0.999)) as u32;
+            let ib = (256.0 * b.clamp(0.0, 0.999)) as u32;
 
             println!("{} {} {}", ir, ig, ib);
         }
@@ -42,10 +43,18 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 }
 
 fn pixel_color(i: u32, j: u32, world: &impl Hittable, camera: &Camera) -> Vec3 {
-    let u = i as f64 / (IMAGE_WIDTH - 1) as f64;
-    let v = j as f64 / (IMAGE_HEIGHT - 1) as f64;
-    let r = camera.get_ray(u, v);
-    ray_color(&r, world)
+    let mut rng = rand::thread_rng();
+    const SAMPLES_PER_PIXEL: i32 = 100;
+    (0..SAMPLES_PER_PIXEL)
+        .map(|_| {
+            let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH - 1) as f64;
+            let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT - 1) as f64;
+            let r = camera.get_ray(u, v);
+
+            ray_color(&r, world)
+        })
+        .sum::<Vec3>()
+        / SAMPLES_PER_PIXEL as f64
 }
 
 fn ray_color(ray: &Ray, world: &impl Hittable) -> Vec3 {
