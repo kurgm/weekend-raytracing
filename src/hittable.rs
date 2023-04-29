@@ -1,4 +1,4 @@
-use std::ops::RangeBounds;
+use std::ops::{Bound, RangeBounds};
 
 use crate::{ray::Ray, vec3::Vec3};
 
@@ -31,8 +31,10 @@ impl HitRecord {
     }
 }
 
+pub type RangeF64 = (Bound<f64>, Bound<f64>);
+
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_range: impl RangeBounds<f64>) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord>;
 }
 
 pub struct Sphere {
@@ -47,7 +49,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, t_range: impl RangeBounds<f64>) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
         let half_b = oc.dot(&ray.direction);

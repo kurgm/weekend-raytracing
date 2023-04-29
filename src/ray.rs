@@ -1,3 +1,5 @@
+use std::ops::Bound;
+
 use crate::{
     hittable::{Hittable, Sphere},
     Vec3,
@@ -31,7 +33,7 @@ impl Ray {
 
     fn hit_sphere(&self, center: Vec3, radius: f64) -> f64 {
         Sphere::new(center, radius)
-            .hit(self, 0.0..f64::INFINITY)
+            .hit(self, (Bound::Included(0.0), Bound::Unbounded))
             .map(|r| r.t)
             .unwrap_or(-1.0)
     }
