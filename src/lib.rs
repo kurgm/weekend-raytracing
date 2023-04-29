@@ -1,12 +1,14 @@
 use std::error::Error;
 
-use crate::vec3::Vec3;
+use crate::{ray::Ray, vec3::Vec3};
 
 mod ray;
 mod vec3;
 
-const IMAGE_WIDTH: u32 = 256;
-const IMAGE_HEIGHT: u32 = 256;
+const ASPECT_RATIO: f64 = 16.0 / 9.0;
+
+const IMAGE_WIDTH: u32 = 400;
+const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -27,9 +29,41 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+const VIEWPORT_HEIGHT: f64 = 2.0;
+const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
+const FOCAL_LENGTH: f64 = 1.0;
+
 fn calculate_color(i: u32, j: u32) -> Vec3 {
-    let r = i as f64 / (IMAGE_WIDTH - 1) as f64;
-    let g = j as f64 / (IMAGE_HEIGHT - 1) as f64;
-    let b = 0.25f64;
-    Vec3 { x: r, y: g, z: b }
+    const ORIGIN: Vec3 = Vec3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    const HORIZONTAL: Vec3 = Vec3 {
+        x: VIEWPORT_WIDTH,
+        y: 0.0,
+        z: 0.0,
+    };
+    const VERTICAL: Vec3 = Vec3 {
+        x: 0.0,
+        y: VIEWPORT_HEIGHT,
+        z: 0.0,
+    };
+
+    let lower_left_corner: Vec3 = ORIGIN
+        - HORIZONTAL / 2.0
+        - VERTICAL / 2.0
+        - Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: FOCAL_LENGTH,
+        };
+
+    let u = i as f64 / (IMAGE_WIDTH - 1) as f64;
+    let v = j as f64 / (IMAGE_HEIGHT - 1) as f64;
+    let r = Ray::new(
+        ORIGIN,
+        lower_left_corner + u * HORIZONTAL + v * VERTICAL - ORIGIN,
+    );
+    r.color()
 }
