@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::{ray::Ray, vec3::Vec3};
 
+mod hittable;
 mod ray;
 mod vec3;
 

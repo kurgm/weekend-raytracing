@@ -1,4 +1,7 @@
-use crate::Vec3;
+use crate::{
+    hittable::{Hittable, Sphere},
+    Vec3,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ray {
@@ -27,15 +30,9 @@ impl Ray {
     }
 
     fn hit_sphere(&self, center: Vec3, radius: f64) -> f64 {
-        let oc = self.origin - center;
-        let a = self.direction.dot(&self.direction);
-        let half_b = oc.dot(&self.direction);
-        let c = oc.dot(&oc) - radius * radius;
-        let discriminant = half_b * half_b - a * c;
-        if discriminant < 0.0 {
-            -1.0
-        } else {
-            (-half_b - discriminant.sqrt()) / a
-        }
+        Sphere::new(center, radius)
+            .hit(self, 0.0..f64::INFINITY)
+            .map(|r| r.t)
+            .unwrap_or(-1.0)
     }
 }
