@@ -1,4 +1,5 @@
 use rand::{distributions::Distribution, Rng};
+use rayon::prelude::*;
 use std::{error::Error, ops::Bound};
 
 use camera::Camera;
@@ -30,22 +31,31 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    for j in (0..IMAGE_HEIGHT).rev() {
-        eprint!("\rScanlines remaining: {} ", j);
-        for i in 0..IMAGE_WIDTH {
-            let Vec3 { x: r, y: g, z: b } = pixel_color(i, j, &world, &camera);
+    let mut image: Vec<_> = (0..IMAGE_HEIGHT)
+        .rev()
+        .flat_map(|j| {
+            eprint!("\rScanlines remaining: {} ", j);
+            (0..IMAGE_WIDTH).map(move |i| (i, j))
+        })
+        .par_bridge()
+        .map(|(i, j)| ((IMAGE_HEIGHT - j, i), pixel_color(i, j, &world, &camera)))
+        .collect();
 
-            // Gamma correction
-            let r = r.sqrt();
-            let g = g.sqrt();
-            let b = b.sqrt();
+    image.sort_unstable_by_key(|(pos, _)| *pos);
 
-            let ir = (256.0 * r.clamp(0.0, 0.999)) as u32;
-            let ig = (256.0 * g.clamp(0.0, 0.999)) as u32;
-            let ib = (256.0 * b.clamp(0.0, 0.999)) as u32;
+    for (_, color) in image {
+        let Vec3 { x: r, y: g, z: b } = color;
 
-            println!("{} {} {}", ir, ig, ib);
-        }
+        // Gamma correction
+        let r = r.sqrt();
+        let g = g.sqrt();
+        let b = b.sqrt();
+
+        let ir = (256.0 * r.clamp(0.0, 0.999)) as u32;
+        let ig = (256.0 * g.clamp(0.0, 0.999)) as u32;
+        let ib = (256.0 * b.clamp(0.0, 0.999)) as u32;
+
+        println!("{} {} {}", ir, ig, ib);
     }
     eprintln!("\nDone.");
     Ok(())
