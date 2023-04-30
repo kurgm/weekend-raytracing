@@ -41,6 +41,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             0.5,
             Material::Metal {
                 albedo: Vec3::new(0.8, 0.8, 0.8),
+                fuzz: 0.3,
             },
         )),
         Box::new(Sphere::new(
@@ -48,6 +49,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             0.5,
             Material::Metal {
                 albedo: Vec3::new(0.8, 0.6, 0.2),
+                fuzz: 1.0,
             },
         )),
     ];
