@@ -25,6 +25,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
+        0.0,
+        1.0,
     );
 
     let world: HittableList = vec![
