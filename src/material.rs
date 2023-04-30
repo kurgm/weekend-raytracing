@@ -45,9 +45,12 @@ impl Material {
                 };
 
                 let unit_direction = ray_in.direction.unit();
-                let refracted = unit_direction.refract(&hit_record.normal, refraction_ratio);
+                let direction = match unit_direction.refract(&hit_record.normal, refraction_ratio) {
+                    Some(refracted) => refracted,
+                    None => unit_direction.reflect(&hit_record.normal),
+                };
 
-                let scattered = Ray::new(hit_record.p, refracted);
+                let scattered = Ray::new(hit_record.p, direction);
                 let attenuation = Vec3::new(1.0, 1.0, 1.0);
                 Some((scattered, attenuation))
             }
