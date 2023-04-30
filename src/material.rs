@@ -4,6 +4,7 @@ use crate::{hittable::HitRecord, ray::Ray, vec3::Vec3};
 pub enum Material {
     Lambertian { albedo: Vec3 },
     Metal { albedo: Vec3, fuzz: f64 },
+    Dielectric { ir: f64 },
 }
 
 impl Material {
@@ -35,6 +36,20 @@ impl Material {
                 } else {
                     None
                 }
+            }
+            Material::Dielectric { ir } => {
+                let refraction_ratio = if hit_record.front_face {
+                    1.0 / *ir
+                } else {
+                    *ir
+                };
+
+                let unit_direction = ray_in.direction.unit();
+                let refracted = unit_direction.refract(&hit_record.normal, refraction_ratio);
+
+                let scattered = Ray::new(hit_record.p, refracted);
+                let attenuation = Vec3::new(1.0, 1.0, 1.0);
+                Some((scattered, attenuation))
             }
         }
     }
