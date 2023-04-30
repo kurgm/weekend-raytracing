@@ -3,11 +3,13 @@ use std::{error::Error, ops::Bound};
 
 use camera::Camera;
 use hittable::{Hittable, HittableList, Sphere};
+use material::Material;
 use ray::Ray;
 use vec3::Vec3;
 
 mod camera;
 mod hittable;
+mod material;
 mod ray;
 mod vec3;
 
@@ -20,8 +22,34 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let camera = Camera::new();
 
     let world: HittableList = vec![
-        Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)),
-        Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, -100.5, -1.0),
+            100.0,
+            Material::Lambertian {
+                albedo: Vec3::new(0.8, 0.8, 0.0),
+            },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 0.0, -1.0),
+            0.5,
+            Material::Lambertian {
+                albedo: Vec3::new(0.7, 0.3, 0.3),
+            },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(-1.0, 0.0, -1.0),
+            0.5,
+            Material::Lambertian {
+                albedo: Vec3::new(0.8, 0.8, 0.8),
+            },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(1.0, 0.0, -1.0),
+            0.5,
+            Material::Lambertian {
+                albedo: Vec3::new(0.8, 0.6, 0.2),
+            },
+        )),
     ];
 
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -70,8 +98,10 @@ fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
     }
 
     if let Some(hit) = world.hit(ray, (Bound::Excluded(0.001), Bound::Unbounded)) {
-        let target = hit.p + hit.normal + Vec3::random_unit_vector();
-        return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
+        let Some((scattered, attenuation)) = hit.material.scatter(ray, &hit) else {
+            return Vec3::new(0.0, 0.0, 0.0);
+        };
+        return attenuation * ray_color(&scattered, world, depth - 1);
     }
     let unit = ray.direction.unit();
     let t = 0.5 * (unit.y + 1.0);

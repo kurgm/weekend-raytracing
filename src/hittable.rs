@@ -1,6 +1,6 @@
 use std::ops::{Bound, RangeBounds};
 
-use crate::{ray::Ray, vec3::Vec3};
+use crate::{material::Material, ray::Ray, vec3::Vec3};
 
 #[derive(Debug, Clone, Copy)]
 pub struct HitRecord {
@@ -8,26 +8,33 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Material,
 }
 
 impl HitRecord {
-    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool) -> Self {
+    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool, material: Material) -> Self {
         HitRecord {
             p,
             normal,
             t,
             front_face,
+            material,
         }
     }
 
-    pub fn from_outward_normal_and_ray(ray: &Ray, t: f64, outward_normal: Vec3) -> Self {
+    pub fn from_outward_normal_and_ray(
+        ray: &Ray,
+        t: f64,
+        outward_normal: Vec3,
+        material: Material,
+    ) -> Self {
         let front_face = ray.direction.dot(&outward_normal) < 0.0;
         let normal = if front_face {
             outward_normal
         } else {
             -outward_normal
         };
-        HitRecord::new(ray.at(t), normal, t, front_face)
+        HitRecord::new(ray.at(t), normal, t, front_face, material)
     }
 }
 
@@ -40,11 +47,16 @@ pub trait Hittable {
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
+    pub material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
-        Sphere { center, radius }
+    pub fn new(center: Vec3, radius: f64, material: Material) -> Self {
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -75,7 +87,7 @@ impl Hittable for Sphere {
         root.map(|t| {
             let p = ray.at(t);
             let outward_normal = (p - self.center) / self.radius;
-            HitRecord::from_outward_normal_and_ray(ray, t, outward_normal)
+            HitRecord::from_outward_normal_and_ray(ray, t, outward_normal, self.material)
         })
     }
 }
