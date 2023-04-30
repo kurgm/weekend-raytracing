@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{distributions::Distribution, Rng};
 use std::{error::Error, ops::Bound};
 
 use camera::Camera;
@@ -13,61 +13,20 @@ mod material;
 mod ray;
 mod vec3;
 
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
+const ASPECT_RATIO: f64 = 3.0 / 2.0;
 
-const IMAGE_WIDTH: u32 = 400;
+const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let camera = {
-        let look_from = Vec3::new(3.0, 3.0, 2.0);
-        let look_at = Vec3::new(0.0, 0.0, -1.0);
+        let look_from = Vec3::new(13.0, 2.0, 3.0);
+        let look_at = Vec3::new(0.0, 0.0, 0.0);
         let vup = Vec3::new(0.0, 1.0, 0.0);
-        Camera::new(
-            look_from,
-            look_at,
-            vup,
-            20.0,
-            ASPECT_RATIO,
-            2.0,
-            (look_from - look_at).length(),
-        )
+        Camera::new(look_from, look_at, vup, 20.0, ASPECT_RATIO, 0.1, 10.0)
     };
 
-    let world: HittableList = vec![
-        Box::new(Sphere::new(
-            Vec3::new(0.0, -100.5, -1.0),
-            100.0,
-            Material::Lambertian {
-                albedo: Vec3::new(0.8, 0.8, 0.0),
-            },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(0.0, 0.0, -1.0),
-            0.5,
-            Material::Lambertian {
-                albedo: Vec3::new(0.1, 0.2, 0.5),
-            },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            0.5,
-            Material::Dielectric { ir: 1.5 },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            -0.45,
-            Material::Dielectric { ir: 1.5 },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(1.0, 0.0, -1.0),
-            0.5,
-            Material::Metal {
-                albedo: Vec3::new(0.8, 0.6, 0.2),
-                fuzz: 0.0,
-            },
-        )),
-    ];
+    let world = random_scene();
 
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
@@ -94,7 +53,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
 fn pixel_color(i: u32, j: u32, world: &impl Hittable, camera: &Camera) -> Vec3 {
     let mut rng = rand::thread_rng();
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 500;
     const MAX_DEPTH: i32 = 50;
     (0..SAMPLES_PER_PIXEL)
         .map(|_| {
@@ -123,4 +82,72 @@ fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
     let unit = ray.direction.unit();
     let t = 0.5 * (unit.y + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+}
+
+fn random_scene() -> HittableList {
+    let mut world: HittableList = vec![
+        Box::new(Sphere::new(
+            Vec3::new(0.0, -1000.0, 0.0),
+            1000.0,
+            Material::Lambertian {
+                albedo: Vec3::new(0.5, 0.5, 0.5),
+            },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(0.0, 1.0, 0.0),
+            1.0,
+            Material::Dielectric { ir: 1.5 },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(-4.0, 1.0, 0.0),
+            1.0,
+            Material::Lambertian {
+                albedo: Vec3::new(0.4, 0.2, 0.1),
+            },
+        )),
+        Box::new(Sphere::new(
+            Vec3::new(4.0, 1.0, 0.0),
+            1.0,
+            Material::Metal {
+                albedo: Vec3::new(0.7, 0.6, 0.5),
+                fuzz: 0.0,
+            },
+        )),
+    ];
+
+    let dist = rand::distributions::WeightedIndex::new([0.8, 0.15, 0.05]).unwrap();
+    let mut rng = rand::thread_rng();
+    for a in -11..11 {
+        for b in -11..11 {
+            let center = Vec3::new(
+                a as f64 + 0.9 * rng.gen::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rng.gen::<f64>(),
+            );
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() <= 0.9 {
+                continue;
+            }
+            let material = match dist.sample(&mut rng) {
+                0 => {
+                    // diffuse
+                    let albedo = Vec3::random(-1.0..1.0) * Vec3::random(-1.0..1.0);
+                    Material::Lambertian { albedo }
+                }
+                1 => {
+                    // metal
+                    let albedo = Vec3::random(0.5..1.0);
+                    let fuzz = rng.gen::<f64>() * 0.5;
+                    Material::Metal { albedo, fuzz }
+                }
+                2 => {
+                    // glass
+                    Material::Dielectric { ir: 1.5 }
+                }
+                _ => unreachable!(),
+            };
+            world.push(Box::new(Sphere::new(center, 0.2, material)));
+        }
+    }
+
+    world
 }
