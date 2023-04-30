@@ -156,4 +156,10 @@ impl Vec3 {
     pub fn unit(&self) -> Vec3 {
         *self / self.length()
     }
+
+    /// Return true if the vector is close to zero in all dimensions.
+    pub fn near_zero(&self) -> bool {
+        const EPS: f64 = 1e-8;
+        self.x.abs() < EPS && self.y.abs() < EPS && self.z.abs() < EPS
+    }
 }

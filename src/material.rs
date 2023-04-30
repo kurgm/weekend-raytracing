@@ -9,7 +9,15 @@ impl Material {
     pub fn scatter(&self, _ray_in: &Ray, hit_record: &HitRecord) -> Option<(Ray, Vec3)> {
         match self {
             Material::Lambertian { albedo } => {
-                let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
+                let scatter_direction = {
+                    let dir = hit_record.normal + Vec3::random_unit_vector();
+                    // Catch degenerate scatter direction
+                    if dir.near_zero() {
+                        hit_record.normal
+                    } else {
+                        dir
+                    }
+                };
                 let scattered = Ray::new(hit_record.p, scatter_direction);
                 let attenuation = *albedo;
                 Some((scattered, attenuation))
