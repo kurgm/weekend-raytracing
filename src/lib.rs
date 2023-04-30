@@ -19,15 +19,20 @@ const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let camera = Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
-        Vec3::new(0.0, 0.0, -1.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        20.0,
-        ASPECT_RATIO,
-        0.0,
-        1.0,
-    );
+    let camera = {
+        let look_from = Vec3::new(3.0, 3.0, 2.0);
+        let look_at = Vec3::new(0.0, 0.0, -1.0);
+        let vup = Vec3::new(0.0, 1.0, 0.0);
+        Camera::new(
+            look_from,
+            look_at,
+            vup,
+            20.0,
+            ASPECT_RATIO,
+            2.0,
+            (look_from - look_at).length(),
+        )
+    };
 
     let world: HittableList = vec![
         Box::new(Sphere::new(
