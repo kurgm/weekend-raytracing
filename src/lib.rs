@@ -39,14 +39,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         Box::new(Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
             0.5,
-            Material::Lambertian {
+            Material::Metal {
                 albedo: Vec3::new(0.8, 0.8, 0.8),
             },
         )),
         Box::new(Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
-            Material::Lambertian {
+            Material::Metal {
                 albedo: Vec3::new(0.8, 0.6, 0.2),
             },
         )),
