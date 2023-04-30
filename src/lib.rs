@@ -2,7 +2,7 @@ use rand::{distributions::Distribution, Rng};
 use std::{error::Error, ops::Bound};
 
 use camera::Camera;
-use hittable::{Hittable, HittableList, Sphere};
+use hittable::{Hittable, Sphere};
 use material::Material;
 use ray::Ray;
 use vec3::Vec3;
@@ -51,7 +51,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn pixel_color(i: u32, j: u32, world: &impl Hittable, camera: &Camera) -> Vec3 {
+fn pixel_color(i: u32, j: u32, world: &Hittable, camera: &Camera) -> Vec3 {
     let mut rng = rand::thread_rng();
     const SAMPLES_PER_PIXEL: i32 = 500;
     const MAX_DEPTH: i32 = 50;
@@ -67,7 +67,7 @@ fn pixel_color(i: u32, j: u32, world: &impl Hittable, camera: &Camera) -> Vec3 {
         / SAMPLES_PER_PIXEL as f64
 }
 
-fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
+fn ray_color(ray: &Ray, world: &Hittable, depth: i32) -> Vec3 {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Vec3::new(0.0, 0.0, 0.0);
@@ -84,28 +84,28 @@ fn ray_color(ray: &Ray, world: &impl Hittable, depth: i32) -> Vec3 {
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
 }
 
-fn random_scene() -> HittableList {
-    let mut world: HittableList = vec![
-        Box::new(Sphere::new(
+fn random_scene() -> Hittable {
+    let mut world = vec![
+        Hittable::Sphere(Sphere::new(
             Vec3::new(0.0, -1000.0, 0.0),
             1000.0,
             Material::Lambertian {
                 albedo: Vec3::new(0.5, 0.5, 0.5),
             },
         )),
-        Box::new(Sphere::new(
+        Hittable::Sphere(Sphere::new(
             Vec3::new(0.0, 1.0, 0.0),
             1.0,
             Material::Dielectric { ir: 1.5 },
         )),
-        Box::new(Sphere::new(
+        Hittable::Sphere(Sphere::new(
             Vec3::new(-4.0, 1.0, 0.0),
             1.0,
             Material::Lambertian {
                 albedo: Vec3::new(0.4, 0.2, 0.1),
             },
         )),
-        Box::new(Sphere::new(
+        Hittable::Sphere(Sphere::new(
             Vec3::new(4.0, 1.0, 0.0),
             1.0,
             Material::Metal {
@@ -145,9 +145,9 @@ fn random_scene() -> HittableList {
                 }
                 _ => unreachable!(),
             };
-            world.push(Box::new(Sphere::new(center, 0.2, material)));
+            world.push(Hittable::Sphere(Sphere::new(center, 0.2, material)));
         }
     }
 
-    world
+    Hittable::HittableList(world)
 }

@@ -40,8 +40,19 @@ impl HitRecord {
 
 pub type RangeF64 = (Bound<f64>, Bound<f64>);
 
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord>;
+#[derive(Debug, Clone)]
+pub enum Hittable {
+    Sphere(Sphere),
+    HittableList(Vec<Hittable>),
+}
+
+impl Hittable {
+    pub fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord> {
+        match self {
+            Hittable::Sphere(sphere) => sphere.hit(ray, t_range),
+            Hittable::HittableList(list) => hit_list(list, ray, t_range),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -59,9 +70,7 @@ impl Sphere {
             material,
         }
     }
-}
 
-impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.dot(&ray.direction);
@@ -93,18 +102,14 @@ impl Hittable for Sphere {
     }
 }
 
-pub type HittableList = Vec<Box<dyn Hittable>>;
-
-impl Hittable for HittableList {
-    fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord> {
-        let mut closest_so_far = t_range.1;
-        let mut hit_record = None;
-        for object in self {
-            if let Some(record) = object.hit(ray, (t_range.0, closest_so_far)) {
-                closest_so_far = Bound::Excluded(record.t);
-                hit_record = Some(record);
-            }
+fn hit_list(list: &Vec<Hittable>, ray: &Ray, t_range: RangeF64) -> Option<HitRecord> {
+    let mut closest_so_far = t_range.1;
+    let mut hit_record = None;
+    for object in list {
+        if let Some(record) = object.hit(ray, (t_range.0, closest_so_far)) {
+            closest_so_far = Bound::Excluded(record.t);
+            hit_record = Some(record);
         }
-        hit_record
     }
+    hit_record
 }
