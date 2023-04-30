@@ -32,7 +32,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         Box::new(Sphere::new(
             Vec3::new(0.0, 0.0, -1.0),
             0.5,
-            Material::Dielectric { ir: 1.5 },
+            Material::Lambertian {
+                albedo: Vec3::new(0.1, 0.2, 0.5),
+            },
         )),
         Box::new(Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
@@ -44,7 +46,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             0.5,
             Material::Metal {
                 albedo: Vec3::new(0.8, 0.6, 0.2),
-                fuzz: 1.0,
+                fuzz: 0.0,
             },
         )),
     ];
