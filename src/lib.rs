@@ -42,6 +42,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             Material::Dielectric { ir: 1.5 },
         )),
         Box::new(Sphere::new(
+            Vec3::new(-1.0, 0.0, -1.0),
+            -0.4,
+            Material::Dielectric { ir: 1.5 },
+        )),
+        Box::new(Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
             Material::Metal {
