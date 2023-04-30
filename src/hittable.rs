@@ -4,7 +4,7 @@ use crate::{material::Material, ray::Ray, vec3::Vec3};
 
 #[derive(Debug, Clone, Copy)]
 pub struct HitRecord {
-    pub p: Vec3,
+    pub point: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
@@ -12,9 +12,9 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new(p: Vec3, normal: Vec3, t: f64, front_face: bool, material: Material) -> Self {
+    pub fn new(point: Vec3, normal: Vec3, t: f64, front_face: bool, material: Material) -> Self {
         HitRecord {
-            p,
+            point,
             normal,
             t,
             front_face,

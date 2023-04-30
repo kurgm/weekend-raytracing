@@ -20,14 +20,14 @@ impl Material {
                         dir
                     }
                 };
-                let scattered = Ray::new(hit_record.p, scatter_direction);
+                let scattered = Ray::new(hit_record.point, scatter_direction);
                 let attenuation = *albedo;
                 Some((scattered, attenuation))
             }
             Material::Metal { albedo, fuzz } => {
                 let reflected = ray_in.direction.unit().reflect(&hit_record.normal);
                 let scattered = Ray::new(
-                    hit_record.p,
+                    hit_record.point,
                     reflected + *fuzz * Vec3::random_in_unit_sphere(),
                 );
                 let attenuation = *albedo;
@@ -55,7 +55,7 @@ impl Material {
                 let direction =
                     refracted.unwrap_or_else(|| unit_direction.reflect(&hit_record.normal));
 
-                let scattered = Ray::new(hit_record.p, direction);
+                let scattered = Ray::new(hit_record.point, direction);
                 let attenuation = Vec3::new(1.0, 1.0, 1.0);
                 Some((scattered, attenuation))
             }
