@@ -1,5 +1,5 @@
 use rand::Rng;
-use std::{error::Error, ops::Bound};
+use std::{error::Error, f64::consts::PI, ops::Bound};
 
 use camera::Camera;
 use hittable::{Hittable, HittableList, Sphere};
@@ -21,40 +21,26 @@ const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 pub fn run() -> Result<(), Box<dyn Error>> {
     let camera = Camera::new(90.0, ASPECT_RATIO);
 
-    let world: HittableList = vec![
-        Box::new(Sphere::new(
-            Vec3::new(0.0, -100.5, -1.0),
-            100.0,
-            Material::Lambertian {
-                albedo: Vec3::new(0.8, 0.8, 0.0),
-            },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(0.0, 0.0, -1.0),
-            0.5,
-            Material::Lambertian {
-                albedo: Vec3::new(0.1, 0.2, 0.5),
-            },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            0.5,
-            Material::Dielectric { ir: 1.5 },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            -0.4,
-            Material::Dielectric { ir: 1.5 },
-        )),
-        Box::new(Sphere::new(
-            Vec3::new(1.0, 0.0, -1.0),
-            0.5,
-            Material::Metal {
-                albedo: Vec3::new(0.8, 0.6, 0.2),
-                fuzz: 0.0,
-            },
-        )),
-    ];
+    let world: HittableList = {
+        let r = (PI / 4.0).cos();
+
+        vec![
+            Box::new(Sphere::new(
+                Vec3::new(-r, 0.0, -1.0),
+                r,
+                Material::Lambertian {
+                    albedo: Vec3::new(0.0, 0.0, 1.0),
+                },
+            )),
+            Box::new(Sphere::new(
+                Vec3::new(r, 0.0, -1.0),
+                r,
+                Material::Lambertian {
+                    albedo: Vec3::new(1.0, 0.0, 0.0),
+                },
+            )),
+        ]
+    };
 
     println!("P3\n{} {}\n255", IMAGE_WIDTH, IMAGE_HEIGHT);
 
