@@ -2,7 +2,7 @@ use crate::{ray::Ray, vec3::Vec3};
 
 pub struct Camera {
     origin: Vec3,
-    lower_left_corner: Vec3,
+    focus_dist: f64,
     horizontal: Vec3,
     vertical: Vec3,
     u: Vec3,
@@ -32,11 +32,9 @@ impl Camera {
         let horizontal = focus_dist * viewport_width * u;
         let vertical = focus_dist * viewport_height * v;
 
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w;
-
         Self {
             origin,
-            lower_left_corner,
+            focus_dist,
             horizontal,
             vertical,
             u,
@@ -47,10 +45,13 @@ impl Camera {
     }
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+        let screen_point = self.origin - self.focus_dist * self.w
+            + (s - 0.5) * self.horizontal
+            + (t - 0.5) * self.vertical;
+
         let rd = self.lens_radius * Vec3::random_in_unit_disk();
         let offset = self.u * rd.x + self.v * rd.y;
         let origin = self.origin + offset;
-        let screen_point = self.lower_left_corner + s * self.horizontal + t * self.vertical;
         Ray::new(origin, screen_point - origin)
     }
 }
