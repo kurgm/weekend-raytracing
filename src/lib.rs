@@ -20,7 +20,7 @@ const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let camera = Camera::new(
-        Vec3::new(0.0, 0.0, 0.0),
+        Vec3::new(-2.0, 2.0, 1.0),
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
