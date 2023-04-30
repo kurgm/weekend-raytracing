@@ -44,6 +44,7 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, t_range: RangeF64) -> Option<HitRecord>;
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,

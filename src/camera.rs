@@ -1,5 +1,6 @@
 use crate::{ray::Ray, vec3::Vec3};
 
+#[derive(Debug, Clone, Copy)]
 pub struct Camera {
     origin: Vec3,
     focus_dist: f64,
